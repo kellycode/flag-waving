@@ -7,7 +7,7 @@
         <link type="text/css" rel="stylesheet" href="main.css">
         <style>
             body {
-                background-color: #cce0ff;
+                background-color: #000;
                 color: #fff;
             }
             a {
@@ -17,10 +17,6 @@
     </head>
 
     <body>
-        <div id="info">Simple Cloth Simulation<br/>
-            Verlet integration with relaxed constraints<br/>
-        </div>
-
         <script type="module">
 
             import * as THREE from './js/three/build/three.module.js';
@@ -35,23 +31,18 @@
              */
 
             // Suggested Readings
-
             // Advanced Character Physics by Thomas Jakobsen Character
             // http://freespace.virgin.net/hugo.elias/models/m_cloth.htm
             // http://en.wikipedia.org/wiki/Cloth_modeling
             // http://cg.alexandra.dk/tag/spring-mass-system/
             // Real-time Cloth Animation http://www.darwin3d.com/gamedev/articles/col0599.pdf
 
-            const params = {
-                enableWind: true,
-                showBall: false,
-                togglePins: togglePins
-            };
-
             const DAMPING = 0.03;
             const DRAG = 1 - DAMPING;
             const MASS = 0.1;
             const restDistance = 25;
+            
+            const windEnabled = true;
 
             const xSegs = 10;
             const ySegs = 15;
@@ -67,15 +58,11 @@
             const TIMESTEP = 18 / 1000;
             const TIMESTEP_SQ = TIMESTEP * TIMESTEP;
 
-            let pins = [];
+            const pins = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
             const windForce = new THREE.Vector3(0, 0, 0);
 
-            const ballPosition = new THREE.Vector3(0, -45, 0);
-            const ballSize = 60; //40
-
             const tmpForce = new THREE.Vector3();
-
 
             function plane(width, height) {
 
@@ -113,11 +100,9 @@
             // Force -> Acceleration
 
             Particle.prototype.addForce = function (force) {
-
                 this.a.add(
                         this.tmp2.copy(force).multiplyScalar(this.invMass)
                         );
-
             };
 
 
@@ -226,7 +211,7 @@
                 // Aerodynamics forces
                 const particles = cloth.particles;
 
-                if (params.enableWind) {
+                if (windEnabled) {
                     let indx;
                     const normal = new THREE.Vector3();
                     const indices = clothGeometry.index;
@@ -260,27 +245,6 @@
 
                 }
 
-                // Ball Constraints
-                ballPosition.z = -Math.sin(now / 600) * 90; //+ 40;
-                ballPosition.x = Math.cos(now / 400) * 70;
-
-                if (params.showBall) {
-                    sphere.visible = true;
-                    for (let i = 0, il = particles.length; i < il; i++) {
-                        const particle = particles[ i ];
-                        const pos = particle.position;
-                        diff.subVectors(pos, ballPosition);
-                        if (diff.length() < ballSize) {
-                            // collided
-                            diff.normalize().multiplyScalar(ballSize);
-                            pos.copy(ballPosition).add(diff);
-                        }
-                    }
-                }
-                else {
-                    sphere.visible = false;
-                }
-
                 // Floor Constraints
                 for (let i = 0, il = particles.length; i < il; i++) {
                     const particle = particles[ i ];
@@ -299,30 +263,6 @@
                 }
             }
 
-            /* testing cloth simulation */
-            const pinsFormation = [];
-            pins = [6];
-
-            pinsFormation.push(pins);
-
-            pins = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-            pinsFormation.push(pins);
-
-            pins = [0];
-            pinsFormation.push(pins);
-
-            pins = []; // cut the rope ;)
-            pinsFormation.push(pins);
-
-            pins = [0, cloth.w]; // classic 2 pins
-            pinsFormation.push(pins);
-
-            pins = pinsFormation[ 1 ];
-
-            function togglePins() {
-                pins = pinsFormation[ ~~(Math.random() * pinsFormation.length) ];
-            }
-
             let container, stats;
             let camera, scene, renderer;
 
@@ -338,6 +278,7 @@
             function init() {
 
                 container = document.createElement('div');
+                container.setAttribute('id','main_view');
                 document.body.appendChild(container);
 
                 // scene
@@ -347,11 +288,14 @@
 
                 // camera
                 camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 10000);
-                camera.position.set(1000, 50, 1500);
+                camera.position.set(1000, 50, 3000);
+                camera.lookAt(new THREE.Vector3(0, 0, 0));
 
                 // lights
 
-                scene.add(new THREE.AmbientLight(0x999999));
+                //scene.add(new THREE.AmbientLight(0x333333));
+
+                
 
                 const light = new THREE.DirectionalLight(0xdfebff, 1);
                 light.position.set(50, 200, 100);
@@ -369,9 +313,9 @@
                 light.shadow.camera.top = d;
                 light.shadow.camera.bottom = -d;
 
-                light.shadow.camera.far = 1000;
+                light.shadow.camera.far = 3000;
 
-                scene.add(light);
+                //scene.add(light);
 
                 // cloth material
                 const loader = new THREE.TextureLoader();
@@ -389,7 +333,7 @@
 
                 // cloth mesh
                 flagMesh = new THREE.Mesh(clothGeometry, clothMaterial);
-                flagMesh.position.set(0, 120, 0);
+                flagMesh.position.set(0, 350, 0);
                 flagMesh.castShadow = true;
                 flagMesh.rotation.z = Math.PI / 2;
                 scene.add(flagMesh);
@@ -399,17 +343,33 @@
                     map: clothTexture,
                     alphaTest: 0
                 });
+                
+                const spotParams = {
+                    
+                }
+                
+                
+                const spotLight = new THREE.SpotLight(0xffffff);
 
-                // sphere
-
-                const ballGeo = new THREE.SphereBufferGeometry(ballSize, 32, 16);
-                const ballMaterial = new THREE.MeshLambertMaterial();
-
-                sphere = new THREE.Mesh(ballGeo, ballMaterial);
-                sphere.castShadow = true;
-                sphere.receiveShadow = true;
-                sphere.visible = false;
-                scene.add(sphere);
+                spotLight.intensity = 2;
+                spotLight.angle = 1;
+                spotLight.decay = 0.0;
+                spotLight.distance = 3000;
+                spotLight.focus = 1;
+                spotLight.position.set(-150, 750, 1000);
+                spotLight.castShadow = true;
+                spotLight.shadow.mapSize.width = 1024;
+                spotLight.shadow.mapSize.height = 1024;
+                spotLight.shadow.camera.near = 1000;
+                spotLight.shadow.camera.far = 5000;
+                spotLight.shadow.camera.fov = 30;
+                spotLight.target = flagMesh;
+                scene.add(spotLight);
+                
+                const spotLightRight = new THREE.SpotLight(0xffffff);
+                spotLightRight.copy(spotLight)
+                spotLightRight.position.set(500, 750, 1000);
+                scene.add(spotLightRight);
 
                 // ground
                 const groundTexture = loader.load('./textures/grasslight-big.jpg');
@@ -426,23 +386,56 @@
                 mesh.receiveShadow = true;
                 scene.add(mesh);
 
-                // flag pole
-                const poleGeo = new THREE.CylinderBufferGeometry(10, 10, 500, 10);
-                const poleMat = new THREE.MeshLambertMaterial({ color: 0xe3e4e7 });
+                const path = "textures/cube/SwedishRoyalCastle/";
+                const format = '.jpg';
+                const urls = [
+                    path + 'px' + format, path + 'nx' + format,
+                    path + 'py' + format, path + 'ny' + format,
+                    path + 'pz' + format, path + 'nz' + format
+                ];
 
-                flagPoleMesh = new THREE.Mesh(poleGeo, poleMat);
+                const cubeTextureLoader = new THREE.CubeTextureLoader();
+
+                const reflectionCube = cubeTextureLoader.load(urls);
+
+                // flag pole
+                const poleGeo = new THREE.CylinderBufferGeometry(10, 10, 750, 10);
+                const poleMat = new THREE.MeshLambertMaterial();
+
+                const reflectiveMat = new THREE.MeshStandardMaterial({color: 0x333333, envMap: reflectionCube, roughness: 0.1, metalness: 1.0});
+
+                const settings = {
+                    metalness: 1.0,
+                    roughness: 0.0,
+                    ambientIntensity: 1.2,
+                    aoMapIntensity: 1.0,
+                    envMapIntensity: 1.0,
+                    displacementScale: 2.436143, // from original model
+                    normalScale: 1.0
+                };
+
+
+                const metalMaterial = new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    roughness: settings.roughness,
+                    metalness: settings.metalness,
+                    side: THREE.DoubleSide
+                });
+
+
+                flagPoleMesh = new THREE.Mesh(poleGeo, reflectiveMat);
                 flagPoleMesh.position.x = -200;
-                flagPoleMesh.position.y = 0;
+                flagPoleMesh.position.y = 125;
                 flagPoleMesh.receiveShadow = true;
                 flagPoleMesh.castShadow = true;
                 scene.add(flagPoleMesh);
-                
-                
+
+
                 const poleTopGeo = new THREE.SphereGeometry(15, 16, 16);
-                
-                flagPoleTopMesh = new THREE.Mesh(poleTopGeo, poleMat);
+
+                flagPoleTopMesh = new THREE.Mesh(poleTopGeo, reflectiveMat);
                 flagPoleTopMesh.position.x = -200;
-                flagPoleTopMesh.position.y = 260;
+                flagPoleTopMesh.position.y = 500;
                 flagPoleTopMesh.receiveShadow = true;
                 flagPoleTopMesh.castShadow = true;
                 scene.add(flagPoleTopMesh);
@@ -475,44 +468,42 @@
                 // for finding positions
                 let keyDownTextField = function (e) {
                     // turn off
-                    return;
+                    //return;
 
-                    let m_now = camera;
+                    let m_now = spotLightRight;
                     switch (e.keyCode) {
                         case 87:
                             console.log('up');
-                            m_now.position.y += 1;
+                            m_now.position.y += 10;
                             console.log('y is ' + m_now.position.y);
                             break;
                         case 83:
                             console.log('down');
-                            m_now.position.y -= 1;
+                            m_now.position.y -= 10;
                             console.log('y is ' + m_now.position.y);
                             break;
                         case 65:
                             console.log('left');
-                            m_now.position.x -= 1;
+                            m_now.position.x -= 10;
                             console.log('x is ' + m_now.position.x);
                             break;
                         case 68:
                             console.log('right');
-                            m_now.position.x -= 1;
+                            m_now.position.x += 10;
                             console.log('x is ' + m_now.position.x);
                             break;
+
+
                     }
+
+                    camera.lookAt(new THREE.Vector3(0, 0, 0));
                 };
 
                 //
                 window.addEventListener('resize', onWindowResize, false);
                 document.body.addEventListener("keydown", keyDownTextField, false);
-
+                
                 //
-                const gui = new GUI();
-                gui.add(params, 'enableWind').name('Enable wind');
-                gui.add(params, 'showBall').name('Show ball');
-                gui.add(params, 'togglePins').name('Toggle pins');
-                //
-
                 if (typeof TESTING !== 'undefined') {
                     for (let i = 0; i < 50; i++) {
                         simulate(500 - 10 * i);
@@ -549,7 +540,6 @@
 
                 clothGeometry.attributes.position.needsUpdate = true;
                 clothGeometry.computeVertexNormals();
-                sphere.position.copy(ballPosition);
                 renderer.render(scene, camera);
             }
 

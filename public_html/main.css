@@ -8,6 +8,11 @@ body {
 	overscroll-behavior: none;
 }
 
+#main_view {
+/*    background: url('./img/white_house.jpg') no-repeat;
+    background-size: 100%;*/
+}
+
 a {
 	color: #ff0;
 	text-decoration: none;
