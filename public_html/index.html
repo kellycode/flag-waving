@@ -19,12 +19,11 @@
     <body>
         <script type="module">
 
-            import * as THREE from './js/three/build/three.module.js';
-
+            import * as THREE from './js/three/build/three.module.min.js';
             import Stats from './js/three/examples/jsm/libs/stats.module.js';
-            import { GUI } from './js/three/examples/jsm/libs/dat.gui.module.js';
-
             import { OrbitControls } from './js/three/examples/jsm/controls/OrbitControls.js';
+
+            import{ Cloth } from './js/WindMachine.js';
 
             /*
              * Cloth Simulation using a relaxed constraints solver
@@ -38,222 +37,26 @@
             // Real-time Cloth Animation http://www.darwin3d.com/gamedev/articles/col0599.pdf
 
 
-            const wind_p = {
+            const wind_params = {
                 DAMPING: 0.03,
                 DRAG: 1 - 0.03, //1 - DAMPING
                 MASS: 0.1,
                 restDistance: 25,
                 xSegs: 10,
                 ySegs: 15,
-                GRAVITY: 981 * 1.4,
+                GRAVITY: 981 * 1.4, // reasons unknown
                 windForce: new THREE.Vector3(0, 0, 0),
-                tmpForce: new THREE.Vector3()
+                tmpForce: new THREE.Vector3(),
+                windEnabled: true,
+                TIMESTEP: 18 / 1000,
+                TIMESTEP_SQ: (18 / 1000) * (18 / 1000)
             };
 
-            const windEnabled = true;
-            const TIMESTEP = 18 / 1000;
-            const TIMESTEP_SQ = TIMESTEP * TIMESTEP;
-            const pins = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-
-            const clothFunction = plane(wind_p.restDistance * wind_p.xSegs, wind_p.restDistance * wind_p.ySegs);
-
-            const cloth = new Cloth(wind_p.xSegs, wind_p.ySegs);
-
-            // (up/-down,left/-right,front/-back)
-            const gravity = new THREE.Vector3(0, -wind_p.GRAVITY, 0).multiplyScalar(wind_p.MASS);
-
-            function plane(width, height) {
-                return function (u, v, target) {
-                    const x = (u - 0.5) * width;
-                    const y = (v + 0.5) * height;
-                    const z = 0;
-                    target.set(x, y, z);
-                };
-            }
-
-            function Particle(x, y, z, mass) {
-                this.position = new THREE.Vector3();
-                this.previous = new THREE.Vector3();
-                this.original = new THREE.Vector3();
-                this.a = new THREE.Vector3(0, 0, 0); // acceleration
-                this.mass = mass;
-                this.invMass = 1 / mass;
-                this.tmp = new THREE.Vector3();
-                this.tmp2 = new THREE.Vector3();
-                // init
-                clothFunction(x, y, this.position); // position
-                clothFunction(x, y, this.previous); // previous
-                clothFunction(x, y, this.original);
-            }
-
-            // Force -> Acceleration
-
-            Particle.prototype.addForce = function (force) {
-                this.a.add(
-                        this.tmp2.copy(force).multiplyScalar(this.invMass)
-                        );
-            };
-
-
-            // Performs Verlet integration
-
-            Particle.prototype.integrate = function (timesq) {
-
-                const newPos = this.tmp.subVectors(this.position, this.previous);
-                newPos.multiplyScalar(wind_p.DRAG).add(this.position);
-                newPos.add(this.a.multiplyScalar(timesq));
-
-                this.tmp = this.previous;
-                this.previous = this.position;
-                this.position = newPos;
-                
-                this.a.set(0, 0, 0);
-            };
-
-
-            const diff = new THREE.Vector3();
-
-            function satisfyConstraints(p1, p2, distance) {
-
-                diff.subVectors(p2.position, p1.position);
-                const currentDist = diff.length();
-                if (currentDist === 0)
-                    return; // prevents division by 0
-                const correction = diff.multiplyScalar(1 - distance / currentDist);
-                const correctionHalf = correction.multiplyScalar(0.5);
-                p1.position.add(correctionHalf);
-                p2.position.sub(correctionHalf);
-            }
-
-
-            function Cloth(w, h) {
-
-                w = w || 10;
-                h = h || 10;
-                this.w = w;
-                this.h = h;
-
-                const particles = [];
-                const constraints = [];
-
-                // Create particles
-                for (let v = 0; v <= h; v++) {
-                    for (let u = 0; u <= w; u++) {
-                        particles.push(
-                                new Particle(u / w, v / h, 0, wind_p.MASS)
-                                );
-                    }
-                }
-
-                // Structural
-                for (let v = 0; v < h; v++) {
-                    for (let u = 0; u < w; u++) {
-                        constraints.push([
-                            particles[ index(u, v) ],
-                            particles[ index(u, v + 1) ],
-                            wind_p.restDistance
-                        ]);
-                        constraints.push([
-                            particles[ index(u, v) ],
-                            particles[ index(u + 1, v) ],
-                            wind_p.restDistance
-                        ]);
-                    }
-                }
-
-                for (let u = w, v = 0; v < h; v++) {
-                    constraints.push([
-                        particles[ index(u, v) ],
-                        particles[ index(u, v + 1) ],
-                        wind_p.restDistance
-
-                    ]);
-                }
-
-                for (let v = h, u = 0; u < w; u++) {
-                    constraints.push([
-                        particles[ index(u, v) ],
-                        particles[ index(u + 1, v) ],
-                        wind_p.restDistance
-                    ]);
-                }
-
-                this.particles = particles;
-                this.constraints = constraints;
-
-                function index(u, v) {
-                    return u + v * (w + 1);
-                }
-                this.index = index;
-            }
-
-            function simulate(now) {
-
-                const windStrength = Math.cos(now / 7000) * 20 + 40;
-
-                wind_p.windForce.set(Math.sin(now / 2000), Math.cos(now / 3000), Math.sin(now / 1000));
-                wind_p.windForce.normalize();
-                wind_p.windForce.multiplyScalar(windStrength);
-
-                // Aerodynamics forces
-                const particles = cloth.particles;
-
-                if (windEnabled) {
-                    let indx;
-                    const normal = new THREE.Vector3();
-                    const indices = clothGeometry.index;
-                    const normals = clothGeometry.attributes.normal;
-
-                    for (let i = 0, il = indices.count; i < il; i += 3) {
-                        for (let j = 0; j < 3; j++) {
-                            indx = indices.getX(i + j);
-                            normal.fromBufferAttribute(normals, indx);
-                            wind_p.tmpForce.copy(normal).normalize().multiplyScalar(normal.dot(wind_p.windForce));
-                            particles[ indx ].addForce(wind_p.tmpForce);
-
-                        }
-                    }
-                }
-
-                for (let i = 0, il = particles.length; i < il; i++) {
-                    const particle = particles[ i ];
-                    particle.addForce(gravity);
-                    particle.integrate(TIMESTEP_SQ);
-                }
-
-                // Start Constraints
-                const constraints = cloth.constraints;
-                const il = constraints.length;
-
-                for (let i = 0; i < il; i++) {
-
-                    const constraint = constraints[ i ];
-                    satisfyConstraints(constraint[ 0 ], constraint[ 1 ], constraint[ 2 ]);
-
-                }
-
-                // Floor Constraints
-                for (let i = 0, il = particles.length; i < il; i++) {
-                    const particle = particles[ i ];
-                    const pos = particle.position;
-                    if (pos.y < -250) {
-                        pos.y = -250;
-                    }
-                }
-
-                // Pin Constraints
-                for (let i = 0, il = pins.length; i < il; i++) {
-                    const xy = pins[ i ];
-                    const p = particles[ xy ];
-                    p.position.copy(p.original);
-                    p.previous.copy(p.original);
-                }
-            }
+            const cloth = new Cloth(wind_params);
 
             let container, stats;
             let camera, scene, renderer;
 
-            let clothGeometry;
             let sphere;
             let flagMesh;
             let flagPoleMesh;
@@ -279,6 +82,7 @@
                 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
                 // lights
+                // DirectionalLight makes far better shadows than SpotLight
                 const light = new THREE.DirectionalLight(0xdfebff, 1);
                 light.position.set(-150, 550, 1000);
                 light.position.multiplyScalar(1.3);
@@ -307,10 +111,8 @@
                     alphaTest: 0
                 });
 
-                // cloth geometry is passed to the wind machine
-                clothGeometry = new THREE.ParametricBufferGeometry(clothFunction, cloth.w, cloth.h);
                 // cloth mesh
-                flagMesh = new THREE.Mesh(clothGeometry, clothMaterial);
+                flagMesh = new THREE.Mesh(cloth.geometry, clothMaterial);
                 flagMesh.position.set(0, 350, 0);
                 flagMesh.castShadow = true;
                 flagMesh.rotation.z = Math.PI / 2;
@@ -384,27 +186,27 @@
                 let keyDownTextField = function (e) {
                     // turn off
                     //return;
-                    let diff = 50;
-                    let m_now = island;
+                    let change = 50;
+                    let m_now = flagPoleMesh;
                     switch (e.keyCode) {
                         case 87:
                             console.log('up');
-                            m_now.position.y += diff;
+                            m_now.position.y += change;
                             console.log('y is ' + m_now.position.y);
                             break;
                         case 83:
                             console.log('down');
-                            m_now.position.y -= diff;
+                            m_now.position.y -= change;
                             console.log('y is ' + m_now.position.y);
                             break;
                         case 65:
                             console.log('left');
-                            m_now.position.x -= diff;
+                            m_now.position.x -= change;
                             console.log('x is ' + m_now.position.x);
                             break;
                         case 68:
                             console.log('right');
-                            m_now.position.x += diff;
+                            m_now.position.x += change;
                             console.log('x is ' + m_now.position.x);
                             break;
                     }
@@ -425,7 +227,7 @@
             // Disneyfy
             function animate(now) {
                 requestAnimationFrame(animate);
-                simulate(now);
+                cloth.simulate(now);
                 render();
                 stats.update();
             }
@@ -434,10 +236,10 @@
                 const p = cloth.particles;
                 for (let i = 0, il = p.length; i < il; i++) {
                     const v = p[ i ].position;
-                    clothGeometry.attributes.position.setXYZ(i, v.x, v.y, v.z);
+                    cloth.geometry.attributes.position.setXYZ(i, v.x, v.y, v.z);
                 }
-                clothGeometry.attributes.position.needsUpdate = true;
-                clothGeometry.computeVertexNormals();
+                cloth.geometry.attributes.position.needsUpdate = true;
+                cloth.geometry.computeVertexNormals();
                 renderer.render(scene, camera);
             }
 
