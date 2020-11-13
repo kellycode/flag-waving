@@ -28,9 +28,9 @@ class Particle {
         this.tmp2 = new THREE.Vector3();
 
         // init
-        cloth.clothFunction(x, y, this.position); // position
-        cloth.clothFunction(x, y, this.previous); // previous
-        cloth.clothFunction(x, y, this.original);
+        cloth.clothPlaneFunction(x, y, this.position); // position
+        cloth.clothPlaneFunction(x, y, this.previous); // previous
+        cloth.clothPlaneFunction(x, y, this.original);
     }
     addForce(force) {
         this.a.add(
@@ -68,18 +68,17 @@ class Cloth {
         // ((x)left/-right, (y)up/-down, (z)front/-back)
         this.velocity = new THREE.Vector3(params.VELOCITY, 0, 0).multiplyScalar(params.MASS);
 
-        this.plane = function (width, height) {
-            return function (u, v, target) {
-                const x = (u - 0.5) * width;
-                const y = (v + 0.5) * height;
-                const z = 0;
-                target.set(x, y, z);
-            };
+        const cloth_width = params.restDistance * params.xSegs;
+        const cloth_height = params.restDistance * params.ySegs;
+
+        this.clothPlaneFunction = function (u, v, target) {
+            const x = (u - 0.5) * cloth_width;
+            const y = (v + 0.5) * cloth_height;
+            const z = 0;
+            target.set(x, y, z);
         };
 
-        this.clothFunction = this.plane(params.restDistance * params.xSegs, params.restDistance * params.ySegs);
-
-        this.geometry = new THREE.ParametricBufferGeometry(this.clothFunction, this.w, this.h);
+        this.geometry = new THREE.ParametricBufferGeometry(this.clothPlaneFunction, this.w, this.h);
 
         const particles = [];
         const constraints = [];
