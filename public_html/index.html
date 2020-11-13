@@ -79,7 +79,7 @@
 
                 // camera
                 camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 10000);
-                camera.position.set(1000, -100, 3000);
+                camera.position.set(0, -100, 3500);
                 camera.lookAt(new THREE.Vector3(0, 0, 0));
 
                 // lights
@@ -95,7 +95,7 @@
                 light.shadow.camera.right = d;
                 light.shadow.camera.top = d;
                 light.shadow.camera.bottom = -d;
-                light.shadow.camera.far = 3000;
+                light.shadow.camera.far = 4000;
                 scene.add(light);
 
 
