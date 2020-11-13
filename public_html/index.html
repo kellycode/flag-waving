@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>three.js webgl - cloth simulation</title>
+        <title>Flag Simulation</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <link type="text/css" rel="stylesheet" href="main.css">
@@ -26,12 +26,14 @@
             import{ Cloth } from './js/WindMachine.js';
 
             /*
+             * Based on:
+             * https://threejs.org/examples/#webgl_animation_cloth
              * Cloth Simulation using a relaxed constraints solver
              */
 
             // Suggested Readings
             // Advanced Character Physics by Thomas Jakobsen Character
-            // http://freespace.virgin.net/hugo.elias/models/m_cloth.htm
+            // https://www.cs.cmu.edu/afs/cs/academic/class/15462-s13/www/lec_slides/Jakobsen.pdf
             // http://en.wikipedia.org/wiki/Cloth_modeling
             // http://cg.alexandra.dk/tag/spring-mass-system/
             // Real-time Cloth Animation http://www.darwin3d.com/gamedev/articles/col0599.pdf
@@ -42,21 +44,20 @@
                 DRAG: 1 - 0.03, //1 - DAMPING
                 MASS: 0.1,
                 restDistance: 25,
-                xSegs: 10,
-                ySegs: 15,
-                GRAVITY: 981 * 1.4, // reasons unknown
+                xSegs: 15,
+                ySegs: 10,
+                VELOCITY: 1000,
                 windForce: new THREE.Vector3(0, 0, 0),
                 tmpForce: new THREE.Vector3(),
                 windEnabled: true,
-                TIMESTEP: 18 / 1000,
-                TIMESTEP_SQ: (18 / 1000) * (18 / 1000)
+                TIMESTEP: 0.000324, // (18 / 1000) * (18 / 1000)
+                pinSide: 'left' // top. right, bottom or left
             };
 
             const cloth = new Cloth(wind_params);
 
             let container, stats;
             let camera, scene, renderer;
-
             let sphere;
             let flagMesh;
             let flagPoleMesh;
@@ -98,7 +99,8 @@
                 scene.add(light);
 
 
-                // start flag
+                // START FLAG
+                // uses the cloth geometry created in WindMachine.js
                 // cloth material
                 const loader = new THREE.TextureLoader();
 
@@ -113,17 +115,18 @@
 
                 // cloth mesh
                 flagMesh = new THREE.Mesh(cloth.geometry, clothMaterial);
-                flagMesh.position.set(0, 350, 0);
+                flagMesh.position.set(0, 110, 0);
                 flagMesh.castShadow = true;
-                flagMesh.rotation.z = Math.PI / 2;
-                scene.add(flagMesh);
+
                 // gives it the light depth variations
                 flagMesh.customDepthMaterial = new THREE.MeshDepthMaterial({
                     depthPacking: THREE.RGBADepthPacking,
                     map: clothTexture,
                     alphaTest: 0
                 });
-                // end flag
+
+                scene.add(flagMesh);
+                // END FLAG
 
                 // ground
                 const groundTexture = loader.load('./textures/grasslight-big.jpg');
@@ -178,33 +181,27 @@
                 stats = new Stats();
                 container.appendChild(stats.dom);
 
-                // 38 up
-                // 40 down
-                // 37 left
-                // 39 right
-                // for finding positions
+                // just for finding mesh positions
                 let keyDownTextField = function (e) {
-                    // turn off
-                    //return;
-                    let change = 50;
-                    let m_now = flagPoleMesh;
+                    let change = 10;
+                    let m_now = flagMesh;
                     switch (e.keyCode) {
-                        case 87:
+                        case 87: // W
                             console.log('up');
                             m_now.position.y += change;
                             console.log('y is ' + m_now.position.y);
                             break;
-                        case 83:
+                        case 83: // S
                             console.log('down');
                             m_now.position.y -= change;
                             console.log('y is ' + m_now.position.y);
                             break;
-                        case 65:
+                        case 65: // A
                             console.log('left');
                             m_now.position.x -= change;
                             console.log('x is ' + m_now.position.x);
                             break;
-                        case 68:
+                        case 68: // D
                             console.log('right');
                             m_now.position.x += change;
                             console.log('x is ' + m_now.position.x);
@@ -212,9 +209,9 @@
                     }
                 };
 
-                //
-                window.addEventListener('resize', onWindowResize, false);
                 document.body.addEventListener("keydown", keyDownTextField, false);
+
+
             }
 
             // resize updates
@@ -223,6 +220,8 @@
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             }
+
+            window.addEventListener('resize', onWindowResize, false);
 
             // Disneyfy
             function animate(now) {
