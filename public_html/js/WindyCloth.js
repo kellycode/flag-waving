@@ -13,7 +13,7 @@
 // http://cg.alexandra.dk/tag/spring-mass-system/
 // Real-time Cloth Animation http://www.darwin3d.com/gamedev/articles/col0599.pdf
 
-import * as THREE from './three/build/three.module.js';
+import * as THREE from './three/build/three.module.min.js';
 
 class Particle {
     constructor(x, y, z, params, cloth) {
@@ -50,7 +50,7 @@ class Particle {
     }
 }
 
-class Cloth {
+class WindyCloth {
 
     constructor(params) {
         this.params = params;
@@ -63,9 +63,10 @@ class Cloth {
         this.pinsRight = [];
         this.pinsBottom = [];
         this.pinsLeft = [];
+        this.particles = [];
         this.diff = new THREE.Vector3();
 
-        // ((x)left/-right, (y)up/-down, (z)front/-back)
+        // ((x)-left/right, (y)up/-down, (z)front/-back)
         this.velocity = new THREE.Vector3(params.VELOCITY, 0, 0).multiplyScalar(params.MASS);
 
         const cloth_width = params.restDistance * params.xSegs;
@@ -237,4 +238,4 @@ class Cloth {
 }
 
 
-export { Cloth };
+export { WindyCloth };

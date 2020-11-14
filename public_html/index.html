@@ -18,12 +18,13 @@
 
     <body>
         <script type="module">
-
+            
+            // Built using three.js revision="122" on 11/12/2020
             import * as THREE from './js/three/build/three.module.min.js';
             import Stats from './js/three/examples/jsm/libs/stats.module.js';
             import { OrbitControls } from './js/three/examples/jsm/controls/OrbitControls.js';
 
-            import{ Cloth } from './js/WindMachine.js';
+            import{ WindyCloth } from './js/WindyCloth.js';
 
             /*
              * Based on:
@@ -54,7 +55,7 @@
                 pinSide: 'left' // top. right, bottom or left
             };
 
-            const cloth = new Cloth(wind_params);
+            const cloth = new WindyCloth(wind_params);
 
             let container, stats;
             let camera, scene, renderer;
@@ -143,7 +144,7 @@
 
                 // flag pole and parts
                 // flag pole
-                const reflectiveMat = new THREE.MeshStandardMaterial({color: 0x333333, roughness: 0.1, metalness: 1.0});
+                const reflectiveMat = new THREE.MeshStandardMaterial({color: 0xe5e6ff, roughness: 0.1, metalness: 1.0});
                 // pole
                 const poleGeo = new THREE.CylinderBufferGeometry(10, 10, 750, 10);
                 flagPoleMesh = new THREE.Mesh(poleGeo, reflectiveMat);
