@@ -181,38 +181,6 @@
                 // performance monitor
                 stats = new Stats();
                 container.appendChild(stats.dom);
-
-                // just for finding mesh positions
-                let keyDownTextField = function (e) {
-                    let change = 10;
-                    let m_now = flagMesh;
-                    switch (e.keyCode) {
-                        case 87: // W
-                            console.log('up');
-                            m_now.position.y += change;
-                            console.log('y is ' + m_now.position.y);
-                            break;
-                        case 83: // S
-                            console.log('down');
-                            m_now.position.y -= change;
-                            console.log('y is ' + m_now.position.y);
-                            break;
-                        case 65: // A
-                            console.log('left');
-                            m_now.position.x -= change;
-                            console.log('x is ' + m_now.position.x);
-                            break;
-                        case 68: // D
-                            console.log('right');
-                            m_now.position.x += change;
-                            console.log('x is ' + m_now.position.x);
-                            break;
-                    }
-                };
-
-                document.body.addEventListener("keydown", keyDownTextField, false);
-
-
             }
 
             // resize updates
