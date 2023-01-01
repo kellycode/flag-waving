@@ -3,26 +3,25 @@
     <head>
         <title>Flag Simulation</title>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link href="css/main.css" rel="stylesheet" type="text/css"/>
-        <style>
-            body {
-                background-color: #000;
-                color: #fff;
-            }
-            a {
-                color: #080;
-            }
-        </style>
     </head>
 
     <body>
+        <!--January 2023 updated to three revision 148-->
+        
+        <script type="importmap">
+            {
+            "imports": {
+            "three": "./js/three_r148/three.module.js"
+            }
+            }
+        </script>
         <script type="module">
-            
-            // Built using three.js revision="122" on 11/12/2020
-            import * as THREE from './js/three/build/three.module.min.js';
-            import Stats from './js/three/examples/jsm/libs/stats.module.js';
-            import { OrbitControls } from './js/three/examples/jsm/controls/OrbitControls.js';
+            import * as THREE from 'three';
+            import Stats from './js/three_r148/stats.module.js';
+            import { OrbitControls } from './js/three_r148/OrbitControls.js';
 
             import{ WindyCloth } from './js/WindyCloth.js';
 
@@ -136,7 +135,7 @@
                 groundTexture.anisotropy = 16;
                 groundTexture.encoding = THREE.sRGBEncoding;
                 const groundMaterial = new THREE.MeshLambertMaterial({map: groundTexture});
-                let mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(20000, 20000), groundMaterial);
+                let mesh = new THREE.Mesh(new THREE.PlaneGeometry(20000, 20000), groundMaterial);
                 mesh.position.y = -250;
                 mesh.rotation.x = -Math.PI / 2;
                 mesh.receiveShadow = true;
@@ -146,7 +145,7 @@
                 // flag pole
                 const reflectiveMat = new THREE.MeshStandardMaterial({color: 0xe5e6ff, roughness: 0.1, metalness: 1.0});
                 // pole
-                const poleGeo = new THREE.CylinderBufferGeometry(10, 10, 750, 10);
+                const poleGeo = new THREE.CylinderGeometry(10, 10, 750, 10);
                 flagPoleMesh = new THREE.Mesh(poleGeo, reflectiveMat);
                 flagPoleMesh.position.x = -200;
                 flagPoleMesh.position.y = 125;

@@ -1,31 +1,9 @@
 body {
 	margin: 0;
-	background-color: #fff;
-	color: #000;
+	background-color: #000;
+	color: #fff;
 	font-family: Monospace;
 	font-size: 13px;
 	line-height: 24px;
 	overscroll-behavior: none;
-}
-
-#main_view {
-
-}
-
-a {
-	color: #ff0;
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
-}
-
-button {
-	cursor: pointer;
-	text-transform: uppercase;
-}
-
-canvas {
-	display: block;
 }

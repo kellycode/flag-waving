@@ -13,7 +13,8 @@
 // http://cg.alexandra.dk/tag/spring-mass-system/
 // Real-time Cloth Animation http://www.darwin3d.com/gamedev/articles/col0599.pdf
 
-import * as THREE from './three/build/three.module.min.js';
+import * as THREE from './three_r148/three.module.js';
+import { ParametricGeometry } from './three_r148/ParametricGeometry.js';
 
 class Particle {
     constructor(x, y, z, params, cloth) {
@@ -79,7 +80,7 @@ class WindyCloth {
             target.set(x, y, z);
         };
 
-        this.geometry = new THREE.ParametricBufferGeometry(this.clothPlaneFunction, this.w, this.h);
+        this.geometry = new ParametricGeometry(this.clothPlaneFunction, this.w, this.h);
 
         const particles = [];
         const constraints = [];
