@@ -9,7 +9,7 @@ January 2023 updated to three r148
 
 Adapted the cloth to be pinned on any of the four sides.
 
-Based on:
+Based on an previous three example now removed:
      https://threejs.org/examples/#webgl_animation_cloth
      Cloth Simulation using a relaxed constraints solver
 
