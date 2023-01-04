@@ -1,17 +1,3 @@
-"use strict";
-
-/*
- * Based on:
- * https://threejs.org/examples/#webgl_animation_cloth
- * Cloth Simulation using a relaxed constraints solver
- */
-
-// Suggested Readings
-// Advanced Character Physics by Thomas Jakobsen Character
-// https://www.cs.cmu.edu/afs/cs/academic/class/15462-s13/www/lec_slides/Jakobsen.pdf
-// http://en.wikipedia.org/wiki/Cloth_modeling
-// http://cg.alexandra.dk/tag/spring-mass-system/
-// Real-time Cloth Animation http://www.darwin3d.com/gamedev/articles/col0599.pdf
 
 import * as THREE from 'three';
 
@@ -92,7 +78,6 @@ class Main {
         this.scene.add(light);
 
         // START FLAG
-        // uses the cloth geometry created in WindMachine.js
         // cloth material
         const loader = new THREE.TextureLoader();
 

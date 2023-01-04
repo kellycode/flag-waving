@@ -1,5 +1,3 @@
-"use strict";
-
 /*
  * Based on:
  * https://threejs.org/examples/#webgl_animation_cloth
