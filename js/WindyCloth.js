@@ -1,18 +1,12 @@
 /*
- * Based on:
+ * Based on the now removed
  * https://threejs.org/examples/#webgl_animation_cloth
  * Cloth Simulation using a relaxed constraints solver
  */
 
-// Suggested Readings
-// Advanced Character Physics by Thomas Jakobsen Character
-// https://www.cs.cmu.edu/afs/cs/academic/class/15462-s13/www/lec_slides/Jakobsen.pdf
-// http://en.wikipedia.org/wiki/Cloth_modeling
-// http://cg.alexandra.dk/tag/spring-mass-system/
-// Real-time Cloth Animation http://www.darwin3d.com/gamedev/articles/col0599.pdf
 
 import * as THREE from 'three';
-import { ParametricGeometry } from './three_r148/ParametricGeometry.js';
+import { ParametricGeometry } from './three_r170/ParametricGeometry.js';
 
 class Particle {
     constructor(x, y, z, params, cloth) {

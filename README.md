@@ -7,7 +7,7 @@ Animated cloth / Flag waving
 Based on the (now removed) Animation / Cloth Three.js experiment:
 https://threejs.org/examples/#webgl_animation_cloth
 
-January 2023 updated to three r148
+November 2024 updated to three r170
 
 Adapted the cloth to be pinned on any of the four sides.
 

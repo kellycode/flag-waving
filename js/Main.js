@@ -1,9 +1,8 @@
 
 import * as THREE from 'three';
 
-import { ParametricGeometry } from './three_r148/ParametricGeometry.js';
-import Stats from './three_r148/stats.module.js';
-import { OrbitControls } from './three_r148/OrbitControls.js';
+import Stats from './three_r170/stats.module.js';
+import { OrbitControls } from './three_r170/OrbitControls.js';
 
 import{ WindyCloth } from './WindyCloth.js';
 
@@ -111,7 +110,9 @@ class Main {
         groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
         groundTexture.repeat.set(25, 25);
         groundTexture.anisotropy = 16;
-        groundTexture.encoding = THREE.sRGBEncoding;
+        // per three r152
+        // groundTexture.encoding = THREE.sRGBEncoding;
+        groundTexture.colorSpace = THREE.SRGBColorSpace;
 
         const groundMaterial = new THREE.MeshLambertMaterial({map: groundTexture});
 
@@ -151,7 +152,9 @@ class Main {
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.outputEncoding = THREE.sRGBEncoding;
+        // per THREE r152
+        // this.renderer.outputEncoding = THREE.sRGBEncoding;
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace ;
         this.renderer.shadowMap.enabled = true;
 
         this.container.appendChild(this.renderer.domElement);
